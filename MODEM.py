@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+# vim:ts=4:sts=4:sw=4:expandtab
+#import player.py #generuje frequecy arg1 of duration arg2
+import player as pl
+import komunikat as kom #napisz czytaj napis
+import sys
+import pulseaudio as pa
+bit_time=1 #czas przesylania jednego bitu
+frequency_zero=440 #czestotliwosc zera
+frequency_one=880 #czestotliwosc jedynki
+sys.stdin.read
+line=sys.stdin.readline().split()
+"""
+while(line!=[]):
+    zerojeden=kom.napisz(line)
+    for x in zerojeden:
+        if x=='0' : 
+            pl.player(frequency_zero,bit_time)
+        else :
+            pl.player(frequency_one,bit_time)    
+    line=sys.stdin.readline().split()
+"""
+
+#ten kod ponizej jest do wywalenia calosci jako pliku
+tablica=[]
+while(line!=[]):
+    zerojeden=kom.napisz(line)
+    for x in zerojeden:
+        if x=='0' : 
+            tablica=tablica+pl.playerud(frequency_zero,bit_time)
+        else :
+            tablica=tablica+pl.playerud(frequency_one,bit_time)    
+    line=sys.stdin.readline().split()
+nchannels=1
+sampwidth=2
+framerate= 44100
+sample_map = {
+    1 : pa.SAMPLE_U8,
+    2 : pa.SAMPLE_S16LE,
+    4 : pa.SAMPLE_S32LE,
+}
+with pa.simple.open(direction=pa.STREAM_PLAYBACK, format=sample_map[sampwidth], rate=framerate, channels=nchannels) as player:    
+     # frames = np.fromstring(frames, dtype=player.sample_type).astype(np.float)
+    frames=tablica
+    player.write(frames)
+    player.drain()
+
+
+

@@ -1,0 +1,3 @@
+ps aux --forest
+ps -u hodor --forest
+kill -9 2424

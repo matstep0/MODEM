@@ -1,0 +1,7 @@
+pacmd list-sources
+pacmd set-default-source
+zmienna srodowiskowa __PULSEAUDIO_WAVFILE__=out.wav
+
+zmiana czestotliwosci 0 1 
+rozne czasy przesylu
+

@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+# vim:ts=4:sts=4:sw=4:expandtab
+#program do kodowania napisow
+import sys
+import numpy as np
+import time
+import matplotlib.pyplot as plt
+import pulseaudio as pa
+import binascii
+def dobin (napis):
+    bitnapis=[bin(ord(letter))[2:].zfill(8) for letter in napis]
+    return "".join(bitnapis)
+def k4B5B (napis):
+    tabelka={'0000':'11110', '0001':'01001','0010':'10100','0011':'10101',
+    '0100':'01010','0101':'01011','0110':'01110',
+    '0111':'01111','1000':'10010','1001':'10011',
+    '1010':'10110','1011':'10111','1100':'11010',
+    '1101':'11011','1110':'11100','1111':'11101'}
+    tabelka2={'11110':'0000','01001':'0001','10100':'0010','10101':'0011',
+    '01010':'0100','01011':'0101','01110':'0110',
+    '01111':'0111','10010':'1000','10011':'1001',
+    '10110':'1010','10111':'1011','11010':'1100',
+    '11011':'1101','11100':'1110','11101':'1111'}
+    if (len(napis)==4):
+        return tabelka[napis]
+    else:
+        (len(napis)==5)
+        if napis in tabelka2.keys():
+            return tabelka2[napis]
+        else:
+            return '-1'
+def zakoduj(napis): #koduje 4B5B NRZ
+    fc=''
+    for i in range(0,len(napis),4) :
+        fc+=k4B5B(napis[i:i+4])
+    pop=1
+    sc=''
+    for i in range(len(fc)):
+        if (fc[i]=='0'):
+            sc+=str(pop)
+            #print("wiedze zero\n")
+        if(fc[i]=='1'):
+            pop= int(not pop)
+            sc+=str(pop)
+            #print("wiedze jeden"+str(pop)+"wypluwam",)
+        #print ("pop",sc[i])
+    return sc
+def rozkoduj(napis):# dekoduje NRZ 4B5B
+    fc=''
+    pop=1
+    for i in range(len(napis)):
+        if (napis[i]==str(pop)):
+            fc+='0'
+            #print("wiedze zero\n")
+        else:
+            pop= int(not pop)
+            fc+='1'
+    sc=''
+    for i in range(0,len(fc),5) :
+        out=k4B5B(fc[i:i+5])
+        if out=='-1':
+            return ""  
+        sc+=out
+    return sc
+def zrobramke (line):
+    od=line[1]
+    do=line[2]
+    s=line[3:]
+    napis=""
+    for word in s:
+        napis+=word+" "
+    napis=napis[0:-1]
+    odad=bin(int(od))[2:].zfill(8)
+    doad=bin(int(do))[2:].zfill(8)
+    dlugosc=bin(len(napis))[2:].zfill(8)
+    napisk=dobin(napis)
+    binary_napis=doad+odad+dlugosc+napisk
+    int_list=[int(binary_napis[i:i+8],2) for i in range(0,len(binary_napis),8)]
+    tab_b=bytes(int_list)
+    suma=binascii.crc32(tab_b)
+    sumak=bin(suma)[2:].zfill(32)
+    wynik=binary_napis+sumak
+    return wynik
+
+def czytajramke (line):
+    if(line == "" ):
+        return ""
+    int_list=[int(line[i:i+8],2) for i in range(0,len(line)-32,8)]
+    sumak=binascii.crc32(bytes(int_list))
+    checksum=int(line[-32:],2)
+    if not sumak==checksum:
+        return "\n"
+    do=int(line[0:8],2)
+    od=int(line[8:16],2)
+    lenght=int(line[16:24],2)
+    wiadomosc=line[24: 24+lenght*8]
+    ret=''
+    for i in range(0,len(wiadomosc),8):
+        ret+=chr(int(wiadomosc[i:i+8],2))
+    return str(od)+str(" ")+str(do)+str(" ")+str(ret)
+def napisz(napis):
+    return "10101011"+zakoduj(zrobramke(['E']+napis))
+def czytaj(napis):
+    return czytajramke(rozkoduj(napis[8:]))
+# bo to projekt a nie plik wykonuwalny
+"""sys.stdin.read
+while(True):
+    line=(sys.stdin.readline()).split()
+    if(line==[]):
+         break
+    if(line[0]=='E'):
+        naglowek="10101011"
+        print(naglowek+zakoduj(zrobramke(line)))
+        #print(naglowek+zakoduj(zrobramke(line)))
+    else:
+        bity=line[1]
+        if not bity[0:8]=='10101011' :
+            print("")
+            continue
+        print(czytajramke(rozkoduj(bity[8:])))"""
+#ramka chyba juz dziala teraz robie czytanie
